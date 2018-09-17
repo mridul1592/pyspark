@@ -1,0 +1,13 @@
+crimeRDD = sc.textFile('/public/crime/csv/crime_data.csv')
+Header = crimeRDD.first()
+crimeFilter = crimeRDD.filter(lambda x: x != Header)
+
+import re
+crimeInRESIDENCE = crimeFilter.filter(lambda r: re.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", r)[7] == 'RESIDENCE'). \
+map(lambda a: (re.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", a)[5], 1))
+
+top3ResCrimes = crimeInRESIDENCE.reduceByKey(add).sortBy(lambda a: a[1], ascending=False).take(3) # take(3) gives a list and not RDD
+
+top3ResCrimesDF = sc.parallelize(top3ResCrimes).toDF(schema=["Crime Type", "Number of Incidents"])  #need to parallelize as top3ResCrimes is a list and not RDD
+
+top3ResCrimesDF.coalesce(1).save("/user/mridulsharma1592/solutions/solution03/RESIDENCE_AREA_CRIMINAL_TYPE_DATA", "json")

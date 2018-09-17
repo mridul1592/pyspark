@@ -1,0 +1,45 @@
+orders = sc.textFile("/public/retail_db/orders")
+#for i in orders.take(10) : print(i)
+orders.count()
+
+orderItems = sc.textFile("/public/retail_db/order_items")
+#for i in orderItems.take(10) : print(i)
+orderItems.count()
+
+ordersFiltered = orders.filter\
+(lambda x:x.split(",")[3] in ("COMPLETE", "CLOSED")) # filter orders, only complete and closed
+ordersFiltered.count()
+
+ordersMap = ordersFiltered.map(lambda o:(int(o.split(",")[0]), o.split(",")[1]))
+ordersMap.count()
+
+orderItemsMap = orderItems.map\
+(lambda oi:(int(oi.split(",")[1]), (int(oi.split(",")[2]), float(oi.split(",")[4]))))
+orderItemsMap.count()
+
+ordersJoin = ordersMap.join(orderItemsMap) 
+# join the two datasets (65536, (u'2014-05-16 00:00:00.0', (957, 299.98)))
+ordersJoin.count()
+
+ordersJoinMap = ordersJoin.map(lambda oj:((oj[1][0], oj[1][1][0]), oj[1][1][1]))
+#making date and product id as key and subtotal as value
+ordersJoinMap.count()
+
+dailyRevenuePerProductId = ordersJoinMap.reduceByKey(lambda a, b: a + b)
+dailyRevenuePerProductId.count()
+
+productsRaw = open("/data/retail_db/products/part-00000").read().splitlines()
+#loading products data from local file system
+
+products = sc.parallelize(productsRaw)
+
+productsMap = products.\
+map(lambda p: (int(p.split(",")[0]), p.split(",")[2]))
+
+dailyRevenuePerProductIdMap = dailyRevenuePerProductId.map(lambda r: (r[0][1], (r[0][0], r[1])))
+
+dailyRevenuePerProductJoin =dailyRevenuePerProductIdMap.join(productsMap)
+
+dailyRevenuePerProductUnsorted = dailyRevenuePerProductJoin.map(lambda t:((t[1][0][0], -t[1][0][1]), t[1][1]))
+
+dailyRevenuePerProductSorted = dailyRevenuePerProductUnsorted.sortByKey()

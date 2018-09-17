@@ -1,0 +1,15 @@
+orders = open("/data/retail_db/orders/part-00000").read().splitlines()
+ordersRDD = sc.parallelize(orders)  # open orders file from local file systema and parallelize
+
+customersRDDMap = customersRDD.map(lambda c: (c.split(',')[0], ', '.join((c.split(',')[2], c.split(',')[1]))))
+ordersRDDMap = ordersRDD.map(lambda o: (o.split(',')[2], o.split(',')[0]))
+
+#join customers left outer join orders so that if customer did not buy anything it gets null
+
+customerOrderLeftJoin = customersRDDMap.leftOuterJoin(ordersRDDMap)
+
+noOrderCustomer = customerOrderLeftJoin.filter(lambda a: a[1][1] == None)
+
+noOrderCustomerSorted = noOrderCustomer.map(lambda c: c[1][0]).sortBy(lambda x: x[0])
+
+noOrderCustomerSorted.coalesce(1).saveAsTextFile("/user/mridulsharma1592/solutions/solutions02/inactive_customers")

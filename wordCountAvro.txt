@@ -1,0 +1,16 @@
+#pyspark --master yarn \
+> --conf spark.ui.port=12456 \
+> --num-executors 10 \
+> --executor-memory 3G \
+> --executor-cores 2 \
+> --packages 'com.databricks:spark-avro_2.10:2.0.1'
+
+wordsRDD =sc.sequenceFile("/public/randomtextwriter/part*")
+
+wordsSplitRDD = wordsRDD.flatMap(lambda x: x).flatMap(lambda w: w.split(' ')).map(lambda a: (a, 1)). \
+reduceByKey(lambda x, y: x+y)
+
+wordCountDF = wordsSplitRDD.toDF(schema = ["word", "count"])
+
+wordCountDF.coalesce(8).write.format("com.databricks.spark.avro").save("/user/mridulsharma1592/solutions/solution05/wordcount")
+

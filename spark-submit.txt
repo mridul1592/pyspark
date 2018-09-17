@@ -1,0 +1,26 @@
+spark-submit --master yarn \
+--conf spark.ui.port=12890 \
+--jars "/usr/hdp/2.5.0.0-1245/spark/lib/spark-streaming-flume_2.10-1.6.2.jar,/usr/hdp/2.5.0.0-1245/spark/lib/spark-streaming-flume-sink_2.10-1.6.2.jar,/usr/hdp/2.5.0.0-1245/flume/lib/flume-ng-sdk-1.5.2.2.5.0.0-1245.jar" \
+ src/main/python/StreamingFlumeDepartmentCount.py gw01.itversity.com 8123 /usr/mridul15/streamingflumedeptcnt-
+
+####spark submit for kafka spark integration####
+
+spark-submit --master yarn \
+--conf spark.ui.port=12890 \
+--jars "/usr/hdp/2.5.0.0-1245/kafka/libs/spark-streaming-kafka_2.10-1.6.2.jar,/usr/hdp/2.5.0.0-1245/kafka/libs/kafka_2.10-0.8.2.1.jar,/usr/hdp/2.5.0.0-1245/kafka/libs/metrics-core-2.2.0.jar" \
+src/main/python/StreamingKafkaDepartmentCount.py /user/mridul15/streamingkafkadepartmentcount/cnt
+
+#####pyspark launch#####
+pyspark --master yarn \
+--conf spark.ui.port=12570 \
+--num-executors 2 \
+--executor-cores 2 \
+--executor-memory 2G
+
+important pyspark properties:
+--master 
+--jars/packages
+--conf 
+--properties-file
+--driver-memory
+--executor-memory

@@ -1,0 +1,24 @@
+## hadoop fs -copyFromLocal /user/nyse /user/mridulsharma1592/nyse : Copy from local to Hadoop
+
+nyseRDD = sc.textFile("/user/mridulsharma1592/nyse/*")
+
+nyseRDDMap = nyseRDD.map(lambda a: \
+( \
+str(a.split(",")[0]), \
+str(a.split(",")[1]), \
+float(a.split(",")[2]), \
+float(a.split(",")[3]), \
+float(a.split(",")[4]), \
+float(a.split(",")[5]), \
+long(a.split(",")[6]), \
+) \
+)
+
+nyseDF = nyseRDDMap.toDF(schema =["stockticker", "transactiondate", "openprice", "highprice", "lowprice", "closeprice", "volume"])
+
+nyseDF.save("/user/mridulsharma1592/nyse_parquet", "parquet")
+
+# to load data from a parquet file:
+# x = sqlContext.read.parquet("/user/mridulsharma1592/nyse_parquet/part-r-00020-855f3833-0882-4014-983e-a408cd64d7a2.gz.parquet")
+# x.registerTempTable("nyse_table")
+# sqlContetxt.sql("select * from nyse_table limit 20").show()
